@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use JetBrains\PhpStorm\ArrayShape;
 
 class StoreProductRequest extends FormRequest
 {
@@ -25,9 +26,17 @@ class StoreProductRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'description' => ['required', 'string'],
-            'is_new' => ['required', 'boolean'],
-            'price' => ['required', 'integer'],
-            'accept_trade' => ['required', 'boolean'],
+
+            'use_price_range' => ['required', 'boolean'],
+            'price_min' => ['required_if:use_price_range,true', 'integer'],
+            'price_max' => ['required_if:use_price_range,true', 'integer'],
+
+            'use_quantity' => ['required', 'boolean'],
+            'quantity' => ['required_if:use_quantity,true', 'integer'],
+
+            'image_links' => ['nullable', 'array'],
+            'image_links.*' => ['nullable', 'url'],
+            'is_active' => ['required', 'boolean'],
         ];
     }
 }

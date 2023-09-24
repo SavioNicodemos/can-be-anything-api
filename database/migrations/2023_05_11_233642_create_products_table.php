@@ -15,9 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->longText('description');
-            $table->boolean('is_new');
-            $table->integer('price');
-            $table->boolean('accept_trade');
+            $table->boolean('use_price_range')->default(true);
+            $table->integer('price_min')->nullable();
+            $table->integer('price_max')->nullable();
+            $table->boolean('use_quantity')->default(true);
+            $table->integer('quantity')->nullable();
+            $table->longText('image_links')->nullable();
             $table->foreignUuid('user_id');
             $table->boolean('is_active');
             $table->timestamps();

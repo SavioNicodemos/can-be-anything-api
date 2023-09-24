@@ -22,9 +22,8 @@ class AddImageProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'string'],
-            'images' => ['array', 'min:1', 'required'],
-            'images.*' => ['required', 'image'],
+            'image_links' => ['array', 'required'],
+            'image_links.*' => ['required', 'url'],
         ];
     }
 }

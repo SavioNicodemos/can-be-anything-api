@@ -36,9 +36,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::get('users/me', [UserController::class, 'me'])->name('users.me');
 
         Route::get('users/products', [ProductController::class, 'getMyProducts']);
-        Route::post('products/images', [ProductController::class, 'addImages']);
-        Route::delete('products/images', [ProductController::class, 'deleteImages']);
+        Route::patch('products/{productId}/images', [ProductController::class, 'changeImages']);
 
-        Route::apiResource('products', ProductController::class);
+        Route::apiResource('products', ProductController::class)->except('index');
     });
 });

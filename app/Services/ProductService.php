@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\NotAuthorizedException;
 use App\Exceptions\NotFoundException;
-use App\Models\Image;
+use App\Helpers\ArrayHelper;
 use App\Models\Product;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,20 +25,32 @@ class ProductService
     /**
      * @throws Throwable
      */
-    public function create($request): Product|null
+    public function create(array $request): Product|null
     {
+        if (is_array($request['image_links'])) {
+            $request['image_links'] = ArrayHelper::uniqueValues($request['image_links']);
+        }
+
         DB::beginTransaction();
         try {
             $product = new Product();
             $product->name = $request['name'];
             $product->description = $request['description'];
-            $product->is_new = $request['is_new'];
-            $product->price = $request['price'];
-            $product->accept_trade = $request['accept_trade'];
+
+            $product->use_price_range = $request['use_price_range'];
+            $product->price_min = $request['price_min'] ?? null;
+            $product->price_max = $request['price_max'] ?? null;
+
+            $product->use_quantity = $request['use_quantity'];
+            $product->quantity = $request['quantity'] ?? null;
+
+            $product->image_links = $request['image_links'] ?? [];
+
+            $product->is_active = $request['is_active'] ?? true;
+
             if (!!auth()->user()->getAuthIdentifier()) {
                 $product->user_id = auth()->user()->getAuthIdentifier();
             }
-            $product->is_active = true;
 
             $product->save();
 
@@ -185,34 +197,20 @@ class ProductService
     /**
      * @throws Throwable
      */
-    public function saveProductImages(array $filters): Collection
+    public function saveProductImages(array $image_links, string $productId): Product
     {
-        $productId = $filters['product_id'];
-        $images = $filters['images'];
+        $product = Product::findOrFail($productId);
+        $images = ArrayHelper::uniqueValues($image_links['image_links']);
 
         DB::beginTransaction();
         try {
-            $product = Product::find($productId);
-            if (!$product) {
-                throw new NotFoundException('Product');
-            }
-            if ($product->user_id !== auth()->user()->getAuthIdentifier()) {
-                throw new NotAuthorizedException('Product');
-            }
+            $product->image_links = $images;
 
-            $imageService = new ImageService();
-
-            $imagesObjects = [];
-            foreach ($images as $image) {
-                $imageObject = $imageService->storeImage($image, 'products');
-                $imagesObjects[] = new Image($imageObject);
-            }
-
-            $product->productImages()->saveMany($imagesObjects);
+            $product->save();
 
             DB::commit();
 
-            return Image::where('imageable_id', $productId)->get();
+            return $product;
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;

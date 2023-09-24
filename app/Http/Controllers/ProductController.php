@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Exceptions\NotAuthorizedException;
 use App\Exceptions\NotFoundException;
 use App\Http\Requests\AddImageProductRequest;
-use App\Http\Requests\DeleteImageProductRequest;
 use App\Http\Requests\ListMyProductsRequest;
-use App\Http\Requests\ListNotMyProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Services\ImageService;
+use App\Models\Product;
 use App\Services\ProductService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\JsonResponse;
@@ -20,19 +18,8 @@ class ProductController extends Controller
 {
     use ApiResponser;
 
-    protected ProductService $productService;
-
-    public function __construct(ProductService $productService)
+    public function __construct(public ProductService $productService)
     {
-        $this->productService = $productService;
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(ListNotMyProductsRequest $request): JsonResponse
-    {
-        return $this->successResponse($this->productService->listNotMyProducts($request->validated()));
     }
 
     /**
@@ -42,7 +29,7 @@ class ProductController extends Controller
      */
     public function store(StoreProductRequest $request): JsonResponse
     {
-        return $this->successResponse($this->productService->create($request), 201);
+        return $this->successResponse($this->productService->create($request->validated()), 201);
     }
 
     /**
@@ -91,21 +78,13 @@ class ProductController extends Controller
     /**
      * @throws Throwable
      */
-    public function addImages(AddImageProductRequest $request): JsonResponse
+    public function changeImages(AddImageProductRequest $request, string $productId): JsonResponse
     {
         return $this->successResponse(
-            $this->productService->saveProductImages($request->validated())
+            $this->productService->saveProductImages(
+                $request->validated(),
+                $productId
+            ),
         );
-    }
-
-    /**
-     * @throws NotAuthorizedException
-     */
-    public function deleteImages(DeleteImageProductRequest $request): JsonResponse
-    {
-        $imageService = new ImageService();
-        $imageService->removeProductImages($request->get('productImagesIds'));
-
-        return $this->successResponse(null, 204);
     }
 }
