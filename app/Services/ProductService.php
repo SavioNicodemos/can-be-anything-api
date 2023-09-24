@@ -65,22 +65,12 @@ class ProductService
         }
     }
 
-    /**
-     * @throws NotFoundException
-     */
     public function findOneById(string $productId): array
     {
         $product = Product::with([
             'user:id,name,tel',
-            'user.image:imageable_id,name',
-            'productImages' => function ($query) {
-                return $query->select(['id', 'name as path', 'imageable_id']);
-            },
-        ])->find($productId);
-
-        if (!$product) {
-            throw new NotFoundException('Product');
-        }
+            'user.image:imageable_id,name'
+        ])->findOrFail($productId);
 
         $product = $product->toArray();
 
@@ -117,22 +107,26 @@ class ProductService
      * @throws Throwable
      * @throws NotFoundException
      */
-    public function update(array $filters, string $productId): bool
+    public function update(array $filters, string $productId): Product
     {
-        $product = Product::find($productId);
-        if (!$product) {
-            throw new NotFoundException('Product');
-        }
+        $product = Product::findOrFail($productId);
+
         if ($product->user_id !== auth()->user()->getAuthIdentifier()) {
             throw new NotAuthorizedException('Product');
         }
+
         DB::beginTransaction();
         try {
             $product->name = $filters['name'] ?? $product->name;
             $product->description = $filters['description'] ?? $product->description;
-            $product->price = $filters['price'] ?? $product->price;
-            $product->is_new = $filters['is_new'] ?? $product->is_new;
-            $product->accept_trade = $filters['accept_trade'] ?? $product->accept_trade;
+
+            $product->use_price_range = $filters['use_price_range'] ?? $product->use_price_range;
+            $product->price_min = $filters['price_min'] ?? $product->price_min;
+            $product->price_max = $filters['price_max'] ?? $product->price_max;
+
+            $product->use_quantity = $filters['use_quantity'] ?? $product->use_quantity;
+            $product->quantity = $filters['quantity'] ?? $product->quantity;
+
             $product->is_active = $filters['is_active'] ?? $product->is_active;
 
             $product->save();
@@ -140,53 +134,25 @@ class ProductService
             DB::commit();
             Cache::forget($this->cacheKey . auth()->user()->getAuthIdentifier());
 
-            return true;
+            return $product->fresh();
         } catch (Exception $e) {
             DB::rollback();
             throw $e;
         }
     }
 
-    public function listNotMyProducts(array $filters): Collection
-    {
-        return Product::where('user_id', '!=', auth()->user()->getAuthIdentifier())
-            ->where('is_active', true)
-            ->where(function (Builder $query) use ($filters) {
-                if (isset($filters['is_new'])) {
-                    $query->where('is_new', $filters['is_new']);
-                }
-                if (isset($filters['accept_trade'])) {
-                    $query->where('accept_trade', $filters['accept_trade']);
-                }
-                if (isset($filters['query'])) {
-                    $query->where('name', 'LIKE', '%' . $filters['query'] . '%');
-                }
-            })
-            ->with([
-                'user:id,name,tel',
-                'user.image:imageable_id,name',
-                'productImages' => function ($query) {
-                    return $query->select(['id', 'name as path', 'imageable_id']);
-                },
-            ])
-            ->get(['id', 'name', 'price', 'is_new', 'accept_trade', 'user_id']);
-    }
-
     public function getMyProducts(array $filters): Collection
     {
         $cachedValues = Cache::get($this->cacheKey . auth()->user()->getAuthIdentifier());
         if ($cachedValues) return $cachedValues;
+
         $myProducts = Product::where('user_id', auth()->user()->getAuthIdentifier())
             ->where(function (Builder $query) use ($filters) {
                 if (isset($filters['is_active'])) {
                     $query->where('is_active', $filters['is_active']);
                 }
             })
-            ->with([
-                'productImages' => function ($query) {
-                    return $query->select(['id', 'name as path', 'imageable_id']);
-                },
-            ])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         Cache::put($this->cacheKey . auth()->user()->getAuthIdentifier(), $myProducts);

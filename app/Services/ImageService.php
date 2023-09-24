@@ -16,7 +16,7 @@ class ImageService
         $md5Name = md5_file($imageFromRequest->getRealPath());
         $guessExtension = $imageFromRequest->guessExtension();
 
-        $newName = $md5Name.'.'.$guessExtension;
+        $newName = $md5Name . '.' . $guessExtension;
         $imageFromRequest->storeAs($folder, $newName, 'public');
 
         return [
@@ -39,29 +39,7 @@ class ImageService
 
     public function getImagePath(Image $image): string
     {
-        return public_path('storage').'/'.$image['folder'].'/'.$image['name'];
-    }
-
-    /**
-     * @throws NotAuthorizedException
-     */
-    public function removeProductImages(array $imageIds): bool
-    {
-        $baseQuery = Image::with('imageable')
-            ->whereIn('id', $imageIds)
-            ->where('imageable_type', '=', 'App\Models\Product');
-
-        $images = $baseQuery->get();
-
-        $this->checkImagesOwnership($images);
-
-        foreach ($images as $image) {
-            $this->deleteImageLocally($image);
-        }
-
-        $baseQuery->delete();
-
-        return true;
+        return public_path('storage') . '/' . $image['folder'] . '/' . $image['name'];
     }
 
     /**

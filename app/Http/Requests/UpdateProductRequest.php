@@ -21,18 +21,22 @@ class UpdateProductRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array|string>
      */
-    #[ArrayShape(['name' => "string[]", 'description' => "string[]", 'price_min' => "string[]", 'price_max' => "string[]", 'quantity' => "string[]", 'image_links' => "string[]", 'image_links.*' => "string[]", 'is_active' => "string[]"])]
     public function rules(): array
     {
         return [
-            'name' => ['string'],
-            'description' => ['string'],
-            'price_min' => ['nullable', 'integer'],
-            'price_max' => ['nullable', 'integer'],
-            'quantity' => ['nullable', 'integer'],
+            'name' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+
+            'use_price_range' => ['nullable', 'boolean'],
+            'price_min' => ['required_if:use_price_range,true', 'integer'],
+            'price_max' => ['required_if:use_price_range,true', 'integer'],
+
+            'use_quantity' => ['nullable', 'boolean'],
+            'quantity' => ['required_if:use_quantity,true', 'integer'],
+
             'image_links' => ['nullable', 'array'],
             'image_links.*' => ['nullable', 'url'],
-            'is_active' => ['boolean'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }
