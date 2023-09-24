@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\NotAuthorizedException;
 use App\Models\Image;
+use App\Models\User;
 use Illuminate\Support\Facades\File;
 
 class ImageService
@@ -47,8 +48,10 @@ class ImageService
      */
     public function checkImagesOwnership($images): bool
     {
+        $userId = User::getLoggedUserId();
+
         foreach ($images as $image) {
-            if ($image['imageable']['user_id'] !== auth()->user()->id) {
+            if ($image['imageable']['user_id'] !== $userId) {
                 throw new NotAuthorizedException('product images');
             }
         }

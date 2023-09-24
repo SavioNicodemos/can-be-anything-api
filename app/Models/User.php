@@ -66,4 +66,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+
+    public static function getLoggedUserId(): string
+    {
+        return User::getLoggedUser()->getAuthIdentifier();
+    }
+
+    public static function getLoggedUser(): ?\Illuminate\Contracts\Auth\Authenticatable
+    {
+        return auth()->user();
+    }
 }

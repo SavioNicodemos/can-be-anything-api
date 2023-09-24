@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\UserService;
 use App\Traits\ApiResponser;
@@ -19,7 +20,7 @@ class UserController extends Controller
 
     public function me(): JsonResponse
     {
-        $userId = auth()->user()->id;
+        $userId = User::getLoggedUserId();
 
         return $this->successResponse($this->userService->getUserData($userId));
     }

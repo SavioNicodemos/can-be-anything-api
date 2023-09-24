@@ -6,6 +6,7 @@ use App\Exceptions\NotAuthorizedException;
 use App\Exceptions\NotFoundException;
 use App\Helpers\ArrayHelper;
 use App\Models\Product;
+use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -31,6 +32,8 @@ class ProductService
             $request['image_links'] = ArrayHelper::uniqueValues($request['image_links']);
         }
 
+        $userId = User::getLoggedUserId();
+
         DB::beginTransaction();
         try {
             $product = new Product();
@@ -48,15 +51,15 @@ class ProductService
 
             $product->is_active = $request['is_active'] ?? true;
 
-            if (!!auth()->user()->getAuthIdentifier()) {
-                $product->user_id = auth()->user()->getAuthIdentifier();
+            if ($userId) {
+                $product->user_id = $userId;
             }
 
             $product->save();
 
             DB::commit();
 
-            Cache::forget($this->cacheKey . auth()->user()->getAuthIdentifier());
+            Cache::forget($this->cacheKey . $userId);
 
             return $product;
         } catch (Exception $e) {
@@ -88,17 +91,18 @@ class ProductService
     public function delete(string $productId): bool
     {
         $product = Product::find($productId);
+        $userId = User::getLoggedUserId();
 
         if (!$product) {
             throw new NotFoundException('Product');
         }
-        if ($product->user_id !== auth()->user()->getAuthIdentifier()) {
+        if ($product->user_id !== $userId) {
             throw new NotAuthorizedException('Product');
         }
 
         $product->delete();
 
-        Cache::forget($this->cacheKey . auth()->user()->getAuthIdentifier());
+        Cache::forget($this->cacheKey . $userId);
 
         return true;
     }
@@ -110,8 +114,9 @@ class ProductService
     public function update(array $filters, string $productId): Product
     {
         $product = Product::findOrFail($productId);
+        $userId = User::getLoggedUserId();
 
-        if ($product->user_id !== auth()->user()->getAuthIdentifier()) {
+        if ($product->user_id !== $userId) {
             throw new NotAuthorizedException('Product');
         }
 
@@ -132,7 +137,7 @@ class ProductService
             $product->save();
 
             DB::commit();
-            Cache::forget($this->cacheKey . auth()->user()->getAuthIdentifier());
+            Cache::forget($this->cacheKey . $userId);
 
             return $product->fresh();
         } catch (Exception $e) {
@@ -143,10 +148,12 @@ class ProductService
 
     public function getMyProducts(array $filters): Collection
     {
-        $cachedValues = Cache::get($this->cacheKey . auth()->user()->getAuthIdentifier());
+        $userId = User::getLoggedUserId();
+
+        $cachedValues = Cache::get($this->cacheKey . $userId);
         if ($cachedValues) return $cachedValues;
 
-        $myProducts = Product::where('user_id', auth()->user()->getAuthIdentifier())
+        $myProducts = Product::where('user_id', $userId)
             ->where(function (Builder $query) use ($filters) {
                 if (isset($filters['is_active'])) {
                     $query->where('is_active', $filters['is_active']);
@@ -155,7 +162,7 @@ class ProductService
             ->orderBy('created_at', 'desc')
             ->get();
 
-        Cache::put($this->cacheKey . auth()->user()->getAuthIdentifier(), $myProducts);
+        Cache::put($this->cacheKey . $userId, $myProducts);
 
         return $myProducts;
     }
