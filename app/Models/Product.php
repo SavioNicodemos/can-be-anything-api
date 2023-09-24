@@ -19,12 +19,12 @@ class Product extends Model
         'quantity',
         'image_links',
         'user_id',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'image_links' => 'array'
+        'image_links' => 'array',
     ];
 
     /**

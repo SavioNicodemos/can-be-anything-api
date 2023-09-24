@@ -21,12 +21,11 @@ trait ApiResponser
     }
 
     private function buildResponse(
-        bool   $success = true,
-        mixed  $data = null,
-        int    $code = Response::HTTP_OK,
+        bool $success = true,
+        mixed $data = null,
+        int $code = Response::HTTP_OK,
         string $message = ''
-    ): JsonResponse
-    {
+    ): JsonResponse {
         return response()->json(
             [
                 'success' => $success,

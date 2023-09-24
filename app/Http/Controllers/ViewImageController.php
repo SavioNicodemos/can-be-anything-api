@@ -15,9 +15,9 @@ class ViewImageController extends Controller
      */
     public function __invoke(string $imageName)
     {
-        $path = public_path() . "/storage/avatars/" . $imageName;
+        $path = public_path().'/storage/avatars/'.$imageName;
 
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             return $this->errorResponse('File not found.', 404);
         }
 

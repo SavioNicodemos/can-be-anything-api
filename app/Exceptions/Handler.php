@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class Handler extends ExceptionHandler
 {
     use ApiResponser;
+
     /**
      * The list of the inputs that are never flashed to the session on validation exceptions.
      *

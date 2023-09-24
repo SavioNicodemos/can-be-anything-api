@@ -17,7 +17,7 @@ class ImageService
         $md5Name = md5_file($imageFromRequest->getRealPath());
         $guessExtension = $imageFromRequest->guessExtension();
 
-        $newName = $md5Name . '.' . $guessExtension;
+        $newName = $md5Name.'.'.$guessExtension;
         $imageFromRequest->storeAs($folder, $newName, 'public');
 
         return [
@@ -40,7 +40,7 @@ class ImageService
 
     public function getImagePath(Image $image): string
     {
-        return public_path('storage') . '/' . $image['folder'] . '/' . $image['name'];
+        return public_path('storage').'/'.$image['folder'].'/'.$image['name'];
     }
 
     /**

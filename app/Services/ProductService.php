@@ -26,7 +26,7 @@ class ProductService
     /**
      * @throws Throwable
      */
-    public function create(array $request): Product|null
+    public function create(array $request): ?Product
     {
         if (is_array($request['image_links'])) {
             $request['image_links'] = ArrayHelper::uniqueValues($request['image_links']);
@@ -59,7 +59,7 @@ class ProductService
 
             DB::commit();
 
-            Cache::forget($this->cacheKey . $userId);
+            Cache::forget($this->cacheKey.$userId);
 
             return $product;
         } catch (Exception $e) {
@@ -72,7 +72,7 @@ class ProductService
     {
         $product = Product::with([
             'user:id,name,tel',
-            'user.image:imageable_id,name'
+            'user.image:imageable_id,name',
         ])->findOrFail($productId);
 
         $product = $product->toArray();
@@ -93,7 +93,7 @@ class ProductService
         $product = Product::find($productId);
         $userId = User::getLoggedUserId();
 
-        if (!$product) {
+        if (! $product) {
             throw new NotFoundException('Product');
         }
         if ($product->user_id !== $userId) {
@@ -102,7 +102,7 @@ class ProductService
 
         $product->delete();
 
-        Cache::forget($this->cacheKey . $userId);
+        Cache::forget($this->cacheKey.$userId);
 
         return true;
     }
@@ -137,7 +137,7 @@ class ProductService
             $product->save();
 
             DB::commit();
-            Cache::forget($this->cacheKey . $userId);
+            Cache::forget($this->cacheKey.$userId);
 
             return $product->fresh();
         } catch (Exception $e) {
@@ -150,8 +150,10 @@ class ProductService
     {
         $userId = User::getLoggedUserId();
 
-        $cachedValues = Cache::get($this->cacheKey . $userId);
-        if ($cachedValues) return $cachedValues;
+        $cachedValues = Cache::get($this->cacheKey.$userId);
+        if ($cachedValues) {
+            return $cachedValues;
+        }
 
         $myProducts = Product::where('user_id', $userId)
             ->where(function (Builder $query) use ($filters) {
@@ -162,7 +164,7 @@ class ProductService
             ->orderBy('created_at', 'desc')
             ->get();
 
-        Cache::put($this->cacheKey . $userId, $myProducts);
+        Cache::put($this->cacheKey.$userId, $myProducts);
 
         return $myProducts;
     }

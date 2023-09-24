@@ -93,6 +93,7 @@ class ProductController extends Controller
         $validated = $this->validate($request, [
             'is_active' => ['required', 'boolean'],
         ]);
+
         return $this->successResponse(
             $this->productService->toggleIsActive(
                 $validated['is_active'],
