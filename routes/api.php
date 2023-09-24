@@ -37,6 +37,7 @@ Route::group(['prefix' => 'v1'], function () {
 
         Route::get('users/products', [ProductController::class, 'getMyProducts']);
         Route::patch('products/{productId}/images', [ProductController::class, 'changeImages']);
+        Route::patch('products/{productId}/is-active', [ProductController::class, 'toggleActive']);
 
         Route::apiResource('products', ProductController::class)->except('index');
     });

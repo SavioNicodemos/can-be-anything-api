@@ -8,10 +8,10 @@ use App\Http\Requests\AddImageProductRequest;
 use App\Http\Requests\ListMyProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
-use App\Models\Product;
 use App\Services\ProductService;
 use App\Traits\ApiResponser;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Throwable;
 
 class ProductController extends Controller
@@ -32,11 +32,6 @@ class ProductController extends Controller
         return $this->successResponse($this->productService->create($request->validated()), 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @throws NotFoundException
-     */
     public function show(string $id): JsonResponse
     {
         return $this->successResponse($this->productService->findOneById($id));
@@ -83,6 +78,22 @@ class ProductController extends Controller
         return $this->successResponse(
             $this->productService->saveProductImages(
                 $request->validated(),
+                $productId
+            ),
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function toggleActive(Request $request, string $productId): JsonResponse
+    {
+        $validated = $this->validate($request, [
+            'is_active' => ['required', 'boolean'],
+        ]);
+        return $this->successResponse(
+            $this->productService->toggleIsActive(
+                $validated['is_active'],
                 $productId
             ),
         );

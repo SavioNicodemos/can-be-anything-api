@@ -182,4 +182,26 @@ class ProductService
             throw $e;
         }
     }
+
+    /**
+     * @throws Throwable
+     */
+    public function toggleIsActive(bool $isActive, string $productId): bool
+    {
+        $product = Product::findOrFail($productId);
+
+        DB::beginTransaction();
+        try {
+            $product->is_active = $isActive;
+
+            $product->save();
+
+            DB::commit();
+
+            return $isActive;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }
