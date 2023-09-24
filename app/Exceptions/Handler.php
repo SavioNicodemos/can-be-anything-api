@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Traits\ApiResponser;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -10,6 +11,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
+    use ApiResponser;
     /**
      * The list of the inputs that are never flashed to the session on validation exceptions.
      *
@@ -27,25 +29,19 @@ class Handler extends ExceptionHandler
     public function register(): void
     {
         $this->renderable(function (NotFoundHttpException $e) {
-            return response()->json([
-                'message' => 'Path not found.',
-            ], $e->getStatusCode());
+            return $this->errorResponse('Path not found.', $e->getStatusCode());
         });
 
         $this->renderable(function (MethodNotAllowedHttpException $e) {
-            return response()->json([
-                'message' => 'Method not allowed for this route.',
-            ], $e->getStatusCode());
+            return $this->errorResponse('Method not allowed for this route.', $e->getStatusCode());
         });
 
         $this->renderable(function (AccessDeniedHttpException $e) {
-            return response()->json([
-                'message' => 'This action is unauthorized.',
-            ], $e->getStatusCode());
+            return $this->errorResponse('This action is unauthorized.', $e->getStatusCode());
         });
 
         $this->renderable(function (FileNotFoundException $e) {
-            return response('', 404);
+            return $this->errorResponse('File not found.', 404);
         });
     }
 }

@@ -49,8 +49,7 @@ class ProductController extends Controller
             $this->productService->update(
                 $request->validated(),
                 $productId
-            ),
-            204
+            )
         );
     }
 
@@ -62,7 +61,10 @@ class ProductController extends Controller
      */
     public function destroy(string $productId): JsonResponse
     {
-        return $this->successResponse($this->productService->delete($productId), 204);
+        return $this->successResponse(
+            data: $this->productService->delete($productId),
+            message: 'Product deleted successfully',
+        );
     }
 
     public function getMyProducts(ListMyProductsRequest $request): JsonResponse
