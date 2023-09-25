@@ -71,7 +71,7 @@ class ProductService
     public function findOneById(string $productId): array
     {
         $product = Product::with([
-            'user:id,name,tel',
+            'user:id,name,username',
             'user.image:imageable_id,name',
         ])->findOrFail($productId);
 

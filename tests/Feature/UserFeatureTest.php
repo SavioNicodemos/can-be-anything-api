@@ -10,7 +10,7 @@ test('can register', function () {
     $response = $this->postJson(route('register-user'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'tel' => '123456789',
+        'username' => 'testUser',
         'password' => 'testPassword',
         'avatar' => UploadedFile::fake()->image('avatar.jpg'),
     ]);

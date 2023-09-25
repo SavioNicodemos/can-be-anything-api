@@ -54,7 +54,7 @@ class UserService
             'avatar' => $user->image->name ?? null,
             'name' => $user->name,
             'email' => $user->email,
-            'tel' => $user->tel,
+            'username' => $user->username,
         ];
     }
 
