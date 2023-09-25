@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'v1'], function () {
     // Not authenticated routes
     Route::post('/sessions', [AuthController::class, 'login'])->name('login');
-    Route::post('/sessions/refresh-token', [AuthController::class, 'refreshToken'])->middleware(['throttle:5,1'])->name('refresh-token');
+    Route::post('/sessions/refresh-token', [AuthController::class, 'refreshToken'])
+        ->middleware(['throttle:5,1'])
+        ->name('refresh-token');
 
     Route::post('/users', [UserController::class, 'register'])->name('register-user');
 
@@ -33,6 +35,11 @@ Route::group(['prefix' => 'v1'], function () {
         Route::delete('/sessions', [AuthController::class, 'logout'])->name('logout');
 
         Route::get('users/me', [UserController::class, 'me'])->name('users.me');
+
+        Route::get('/email/verify/{id}/{hash}', [UserController::class, 'verifyEmail'])
+            ->middleware(['signed'])->name('verification.verify');
+        Route::post('/email/resend-verification', [UserController::class, 'resendVerification'])
+            ->middleware(['throttle:6,1'])->name('verification.send');
 
         Route::get('users/products', [ProductController::class, 'getMyProducts']);
         Route::patch('products/{productId}/images', [ProductController::class, 'changeImages']);

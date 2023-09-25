@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 
 class Handler extends ExceptionHandler
 {
@@ -43,6 +44,10 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (FileNotFoundException $e) {
             return $this->errorResponse('File not found.', 404);
+        });
+
+        $this->renderable(function (InvalidSignatureException $e) {
+            return $this->errorResponse($e->getMessage(), $e->getStatusCode());
         });
     }
 }

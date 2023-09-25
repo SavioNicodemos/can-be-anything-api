@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Image;
 use App\Models\User;
 use Exception;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -34,6 +36,8 @@ class UserService
 
             DB::commit();
 
+            event(new Registered($user));
+
             return true;
         } catch (Exception $e) {
             DB::rollback();
@@ -52,5 +56,17 @@ class UserService
             'email' => $user->email,
             'tel' => $user->tel,
         ];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function resendEmailVerification(string $userId): bool
+    {
+        $user = User::findOrFail($userId);
+
+        $user->sendEmailVerificationNotification();
+
+        return true;
     }
 }
