@@ -1,23 +1,10 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Http\UploadedFile;
+use Database\Factories\RefreshTokenFactory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
-
-test('can register', function () {
-    $response = $this->postJson('api/v1/users', [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-        'tel' => '123456789',
-        'password' => 'testPassword',
-        // Assuming a test image file is stored in the `tests` directory.
-        'avatar' => UploadedFile::fake()->image('avatar.jpg'),
-    ]);
-
-    $response->assertStatus(201);
-    $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
-});
+uses(RefreshDatabase::class);
 
 test('can login', function () {
     // Create a user to test with.
@@ -110,13 +97,22 @@ test('can refresh token', function () {
         ->and($user->name)->toEqual($responseRefreshToken->json()['data']['user']['name']);
 });
 
-test('can get user data', function () {
-    $user = User::factory()->create();
+test('can not refresh an invalid token', function () {
+    $responseRefreshToken = $this->postJson(route('refresh-token'), [
+        'refresh_token' => fake()->uuid,
+    ]);
 
-    // Attempt to get user data.
-    $response = $this->actingAs($user, 'sanctum')->getJson('api/v1/users/me');
+    $responseRefreshToken->assertStatus(400);
+    expect($responseRefreshToken->json()['message'])->toContain('Invalid');
+});
 
-    // Check the response.
-    $response->assertStatus(200);
-    expect($response->json()['data']['id'])->toEqual($user->id);
+test('can not refresh an expired token', function () {
+    $refreshToken = RefreshTokenFactory::new()->expired()->create();
+
+    $responseRefreshToken = $this->postJson(route('refresh-token'), [
+        'refresh_token' => $refreshToken->id,
+    ]);
+
+    $responseRefreshToken->assertStatus(400);
+    expect($responseRefreshToken->json()['message'])->toContain('Expired');
 });

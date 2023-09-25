@@ -12,6 +12,11 @@
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <coverage>
+        <report>
+            <html outputDirectory="reports/coverage"/>
+        </report>
+    </coverage>
     <source>
         <include>
             <directory suffix=".php">./app</directory>

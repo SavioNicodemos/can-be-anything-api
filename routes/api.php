@@ -19,19 +19,18 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'v1'], function () {
     // Not authenticated routes
-    Route::post('/sessions', [AuthController::class, 'login'])->name('login.api');
-    Route::post('/sessions/refresh-token', [AuthController::class, 'refreshToken'])->middleware(['throttle:5,1'])->name('login.api');
+    Route::post('/sessions', [AuthController::class, 'login'])->name('login');
+    Route::post('/sessions/refresh-token', [AuthController::class, 'refreshToken'])->middleware(['throttle:5,1'])->name('refresh-token');
 
-    Route::post('/users', [UserController::class, 'register'])->name('register.api');
+    Route::post('/users', [UserController::class, 'register'])->name('register-user');
 
-    Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->name('forgot.api');
-    Route::put('/password/reset', [AuthController::class, 'passwordReset'])->name('forgot.api');
+    Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->name('forgot-password');
+    Route::put('/password/reset', [AuthController::class, 'passwordReset'])->name('reset-password');
 
     Route::get('images/{imageName}', ViewImageController::class);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::delete('/sessions', [AuthController::class, 'logout'])->name('logout.api');
-        Route::post('/logout', [AuthController::class, 'logout'])->name('logout.api');
+        Route::delete('/sessions', [AuthController::class, 'logout'])->name('logout');
 
         Route::get('users/me', [UserController::class, 'me'])->name('users.me');
 
