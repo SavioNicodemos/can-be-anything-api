@@ -18,7 +18,7 @@ class Product extends Model
         'price_max',
         'quantity',
         'image_links',
-        'user_id',
+        'wish_list_id',
         'is_active',
     ];
 
@@ -28,10 +28,10 @@ class Product extends Model
     ];
 
     /**
-     * The user owner of the product
+     * The wish list that the product belongs to
      */
-    public function user(): BelongsTo
+    public function wishlist(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(WishList::class, 'wish_list_id');
     }
 }

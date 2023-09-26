@@ -21,7 +21,6 @@ return new class extends Migration
             $table->boolean('use_quantity')->default(true);
             $table->integer('quantity')->nullable();
             $table->longText('image_links')->nullable();
-            $table->foreignUuid('user_id');
             $table->boolean('is_active');
             $table->timestamps();
         });

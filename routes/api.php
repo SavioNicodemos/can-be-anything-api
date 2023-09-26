@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ViewImageController;
+use App\Http\Controllers\WishListController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,5 +47,8 @@ Route::group(['prefix' => 'v1'], function () {
         Route::patch('products/{productId}/is-active', [ProductController::class, 'toggleActive']);
 
         Route::apiResource('products', ProductController::class)->except('index');
+
+        Route::get('users/{username}/wish-lists', [WishListController::class, 'index']);
+        Route::apiResource('wish-lists', WishListController::class)->except('index');
     });
 });
