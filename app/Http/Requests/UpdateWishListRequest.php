@@ -22,8 +22,8 @@ class UpdateWishListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string|max:255',
-            'slug' => 'string|max:255',
+            'name' => 'string|max:50',
+            'slug' => 'string|max:50',
             'is_active' => 'boolean'
         ];
     }

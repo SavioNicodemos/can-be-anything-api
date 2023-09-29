@@ -35,7 +35,7 @@ class WishListController extends Controller
 
         $wishlist = $this->wishlistService->create($requestData);
 
-        return $this->successResponse($wishlist);
+        return $this->successResponse($wishlist, 201);
     }
 
     public function show(string $wishListId): JsonResponse
@@ -60,14 +60,8 @@ class WishListController extends Controller
      */
     public function destroy(string $wishList): JsonResponse
     {
-        try {
-            $this->wishlistService->delete($wishList);
+        $this->wishlistService->delete($wishList);
 
-            return $this->successResponse(null, message: 'Wish list deleted successfully');
-        } catch (NotAuthorizedException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            return $this->errorResponse($e->getMessage(), 500);
-        }
+        return $this->successResponse(null, message: 'Wish list deleted successfully');
     }
 }

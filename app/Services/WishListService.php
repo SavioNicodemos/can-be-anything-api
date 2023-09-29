@@ -29,14 +29,16 @@ class WishListService
     {
         $userId = User::getLoggedUserId();
 
-        $slug = Str::slug($request['slug']) ?? Str::slug($request['name']);
+        $slug = $request['slug'] ? Str::slug($request['slug']) : Str::slug($request['name']);
 
         if (!$this->checkSlugAvailability($slug, $userId)) {
-            $slug = Str::slug($request['name']) . '-' . Str::random(5);
+            $baseSlug = strlen($slug) > 44 ? substr($slug, 0, 44) : $slug;
+            $slug = $baseSlug . '-' . Str::random(5);
         }
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+
             $wishList = new WishList();
 
             $wishList->name = $request['name'];
@@ -72,6 +74,8 @@ class WishListService
 
     public function getWishListByUsername(string $username): Collection
     {
+        User::where('username', $username)->firstOrFail();
+
         return WishList::whereHas('user', function (Builder $query) use ($username) {
             $query->where('username', $username);
         })->get();
@@ -108,14 +112,16 @@ class WishListService
             throw new NotAuthorizedException('Wish List');
         }
 
-        $slug = Str::slug($filters['slug']) ?? $wishList->slug;
+        $slug = $filters['slug'] ? Str::slug($filters['slug']) : $wishList->slug;
 
         if (!$this->checkSlugAvailability($slug, $userId, exceptId: $wishList->id)) {
-            $slug = $slug . '-' . Str::random(5);
+            $baseSlug = strlen($slug) > 44 ? substr($slug, 0, 44) : $slug;
+            $slug = $baseSlug . '-' . Str::random(5);
         }
 
-        DB::beginTransaction();
         try {
+            DB::beginTransaction();
+
             $wishList->name = $filters['name'] ?? $wishList->name;
             $wishList->slug = $slug;
             $wishList->is_active = $filters['is_active'] ?? $wishList->is_active;

@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\TestCase;
+use function Pest\Laravel\actingAs;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -42,7 +46,25 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function asAdmin(): TestCase
 {
-    // ..
+    return actingAs(createUser(isAdmin: true));
+}
+
+function asUser(): TestCase
+{
+    return actingAs(createUser());
+}
+
+function createUser(bool $isAdmin = false): User
+{
+    return User::factory()->create([
+        'password' => bcrypt('password'),
+        'is_admin' => $isAdmin,
+    ]);
+}
+
+function longString(int $numOfLetters = 51): string
+{
+    return str_repeat('a', $numOfLetters);
 }

@@ -48,7 +48,7 @@ Route::group(['prefix' => 'v1'], function () {
 
         Route::apiResource('products', ProductController::class)->except('index');
 
-        Route::get('users/{username}/wish-lists', [WishListController::class, 'index']);
+        Route::get('users/{username}/wish-lists', [WishListController::class, 'index'])->name('wish-lists.index');
         Route::apiResource('wish-lists', WishListController::class)->except('index');
     });
 });
