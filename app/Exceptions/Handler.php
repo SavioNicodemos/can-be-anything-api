@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Helpers\StringHelper;
 use App\Traits\ApiResponser;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
@@ -30,8 +31,21 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->renderable(function (NotFoundHttpException $e) {
-            return $this->errorResponse('Path not found.', $e->getStatusCode());
+        $this->renderable(function (NotFoundHttpException $e, $request) {
+            $errorMessage = $e->getMessage();
+            $message = $e->getMessage().' not found.';
+
+            if (str_contains($errorMessage, 'model')) {
+                $modelName = StringHelper::extractModelName($errorMessage);
+                $modelName = StringHelper::separateWordsByCapital($modelName);
+                $message = ucfirst(strtolower($modelName) ?? 'Data').' not found.';
+            }
+
+            if (str_contains($errorMessage, 'route')) {
+                $message = 'Route not found.';
+            }
+
+            return $this->errorResponse($message, 404);
         });
 
         $this->renderable(function (MethodNotAllowedHttpException $e) {

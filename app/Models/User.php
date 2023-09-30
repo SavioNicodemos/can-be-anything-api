@@ -83,4 +83,25 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return auth()->user();
     }
+
+    public function hasAccessTo($model, User $user = null): bool
+    {
+        if (! $user) {
+            $user = $this->find(User::getLoggedUserId());
+        }
+
+        if ($user['is_admin']) {
+            return true;
+        }
+
+        if ($model instanceof WishList) {
+            return $model->user_id === $user->id;
+        }
+
+        if ($model instanceof Product) {
+            return $model->wishlist->user_id === $user->id;
+        }
+
+        return false;
+    }
 }

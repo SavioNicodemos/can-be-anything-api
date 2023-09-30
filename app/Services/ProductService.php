@@ -7,6 +7,7 @@ use App\Exceptions\NotFoundException;
 use App\Helpers\ArrayHelper;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\WishList;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -32,7 +33,13 @@ class ProductService
             $request['image_links'] = ArrayHelper::uniqueValues($request['image_links']);
         }
 
-        $userId = User::getLoggedUserId();
+        $user = User::find(User::getLoggedUserId());
+
+        $wishList = WishList::findOrFail($request['wish_list_id']);
+
+        if (!$user->hasAccessTo($wishList, $user)) {
+            throw new NotAuthorizedException('WishList');
+        }
 
         DB::beginTransaction();
         try {
@@ -51,15 +58,13 @@ class ProductService
 
             $product->is_active = $request['is_active'] ?? true;
 
-            if ($userId) {
-                $product->user_id = $userId;
-            }
+            $product->wish_list_id = $request['wish_list_id'];
 
             $product->save();
 
             DB::commit();
 
-            Cache::forget($this->cacheKey.$userId);
+            Cache::forget($this->cacheKey . $user['id']);
 
             return $product;
         } catch (Exception $e) {
@@ -85,24 +90,22 @@ class ProductService
     }
 
     /**
-     * @throws NotFoundException
      * @throws NotAuthorizedException
      */
     public function delete(string $productId): bool
     {
-        $product = Product::find($productId);
-        $userId = User::getLoggedUserId();
+        $product = Product::findOrFail($productId);
 
-        if (! $product) {
-            throw new NotFoundException('Product');
-        }
-        if ($product->user_id !== $userId) {
+        $userId = User::getLoggedUserId();
+        $user = User::find($userId);
+
+        if (!$user->hasAccessTo($product, $user)) {
             throw new NotAuthorizedException('Product');
         }
 
         $product->delete();
 
-        Cache::forget($this->cacheKey.$userId);
+        Cache::forget($this->cacheKey . $userId);
 
         return true;
     }
@@ -115,15 +118,29 @@ class ProductService
     {
         $product = Product::findOrFail($productId);
         $userId = User::getLoggedUserId();
+        $user = User::find($userId);
 
-        if ($product->user_id !== $userId) {
+        if (!$user->hasAccessTo($product, $user)) {
             throw new NotAuthorizedException('Product');
+        }
+
+        $newWishListId = $filters['wish_list_id'] ?? null;
+        if ($newWishListId) {
+            $wishList = WishList::findOrFail($filters['wish_list_id']);
+
+            if (!$user->hasAccessTo($wishList, $user)) {
+                throw new NotAuthorizedException('WishList');
+            }
         }
 
         DB::beginTransaction();
         try {
             $product->name = $filters['name'] ?? $product->name;
             $product->description = $filters['description'] ?? $product->description;
+
+            if ($newWishListId) {
+                $product->wish_list_id = $wishList['id'];
+            }
 
             $product->use_price_range = $filters['use_price_range'] ?? $product->use_price_range;
             $product->price_min = $filters['price_min'] ?? $product->price_min;
@@ -137,7 +154,7 @@ class ProductService
             $product->save();
 
             DB::commit();
-            Cache::forget($this->cacheKey.$userId);
+            Cache::forget($this->cacheKey . $userId);
 
             return $product->fresh();
         } catch (Exception $e) {
@@ -150,7 +167,7 @@ class ProductService
     {
         $userId = User::getLoggedUserId();
 
-        $cachedValues = Cache::get($this->cacheKey.$userId);
+        $cachedValues = Cache::get($this->cacheKey . $userId);
         if ($cachedValues) {
             return $cachedValues;
         }
@@ -164,7 +181,7 @@ class ProductService
             ->orderBy('created_at', 'desc')
             ->get();
 
-        Cache::put($this->cacheKey.$userId, $myProducts);
+        Cache::put($this->cacheKey . $userId, $myProducts);
 
         return $myProducts;
     }
@@ -198,6 +215,12 @@ class ProductService
     public function toggleIsActive(bool $isActive, string $productId): bool
     {
         $product = Product::findOrFail($productId);
+
+        $user = User::find(User::getLoggedUserId());
+
+        if (!$user->hasAccessTo($product, $user)) {
+            throw new NotAuthorizedException('Product');
+        }
 
         DB::beginTransaction();
         try {

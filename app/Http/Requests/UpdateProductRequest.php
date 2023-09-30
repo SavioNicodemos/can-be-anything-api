@@ -25,6 +25,7 @@ class UpdateProductRequest extends FormRequest
         return [
             'name' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
+            'wish_list_id' => ['nullable', 'integer', 'exists:wish_lists,id'],
 
             'use_price_range' => ['nullable', 'boolean'],
             'price_min' => ['required_if:use_price_range,true', 'integer'],

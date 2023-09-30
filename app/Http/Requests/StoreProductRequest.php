@@ -25,6 +25,7 @@ class StoreProductRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'description' => ['required', 'string'],
+            'wish_list_id' => ['required', 'integer', 'exists:wish_lists,id'],
 
             'use_price_range' => ['required', 'boolean'],
             'price_min' => ['required_if:use_price_range,true', 'integer'],
