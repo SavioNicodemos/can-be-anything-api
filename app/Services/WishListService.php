@@ -6,8 +6,8 @@ use App\Exceptions\NotAuthorizedException;
 use App\Models\User;
 use App\Models\WishList;
 use Exception;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -72,13 +72,17 @@ class WishListService
             ->exists();
     }
 
-    public function getWishListByUsername(string $username): Collection
+    public function getWishListByUsername(string $username): LengthAwarePaginator
     {
         User::where('username', $username)->firstOrFail();
 
-        return WishList::whereHas('user', function (Builder $query) use ($username) {
-            $query->where('username', $username);
-        })->get();
+        return WishList::withCount('products')
+            ->whereHas('user', function ($query) use ($username) {
+                $query->where('username', $username);
+            })
+            ->where('is_active', true)
+            ->orderBy('updated_at', 'desc')
+            ->paginate(10);
     }
 
     /**
