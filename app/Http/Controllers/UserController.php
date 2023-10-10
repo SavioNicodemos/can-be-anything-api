@@ -27,6 +27,11 @@ class UserController extends Controller
         return $this->successResponse($this->userService->getUserData($userId));
     }
 
+    public function getByUsername(Request $request, string $username): JsonResponse
+    {
+        return $this->successResponse($this->userService->getByUsername($username));
+    }
+
     /**
      * @throws Throwable
      */

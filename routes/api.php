@@ -36,6 +36,8 @@ Route::group(['prefix' => 'v1'], function () {
     Route::get('users/{username}/wish-lists/{wishListSlug}/products', [WishListController::class, 'getProducts'])
         ->name('wish-lists.products');
 
+    Route::get('public/users/{username}', [UserController::class, 'getByUsername'])->name('users.username');
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/sessions', [AuthController::class, 'logout'])->name('logout');
 

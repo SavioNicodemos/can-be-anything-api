@@ -69,4 +69,15 @@ class UserService
 
         return true;
     }
+
+    public function getByUsername(string $username): array
+    {
+        $user = User::with('image')->where('username', $username)->firstOrFail();
+
+        return [
+            'avatar' => $user->image->name ? public_path($user->image->name) : null,
+            'name' => $user->name,
+            'username' => $user->username,
+        ];
+    }
 }
