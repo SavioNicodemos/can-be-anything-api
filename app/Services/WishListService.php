@@ -82,7 +82,7 @@ class WishListService
             })
             ->where('is_active', true)
             ->orderBy('updated_at', 'desc')
-            ->paginate(10);
+            ->paginate(12);
     }
 
     /**

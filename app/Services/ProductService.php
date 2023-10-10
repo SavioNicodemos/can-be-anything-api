@@ -101,7 +101,7 @@ class ProductService
         })
             ->where('is_active', true)
             ->orderBy('created_at', 'desc')
-            ->paginate();
+            ->paginate(12);
 
         return $products;
     }
