@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\WishList;
 use Exception;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -89,6 +90,22 @@ class ProductService
         return $product;
     }
 
+    public function getProducts(string $username, string $wishListSlug): LengthAwarePaginator
+    {
+        $user = User::where('username', $username)->firstOrFail();
+        $userId = $user->id;
+
+        $products = Product::whereHas('wishList', function (Builder $query) use ($username, $wishListSlug, $userId) {
+            $query->where('slug', $wishListSlug)
+                ->where('user_id', $userId);
+        })
+            ->where('is_active', true)
+            ->orderBy('created_at', 'desc')
+            ->paginate();
+
+        return $products;
+    }
+
     /**
      * @throws NotAuthorizedException
      */
@@ -167,12 +184,7 @@ class ProductService
     {
         $userId = User::getLoggedUserId();
 
-        $cachedValues = Cache::get($this->cacheKey . $userId);
-        if ($cachedValues) {
-            return $cachedValues;
-        }
-
-        $myProducts = Product::where('user_id', $userId)
+        return Product::where('user_id', $userId)
             ->where(function (Builder $query) use ($filters) {
                 if (isset($filters['is_active'])) {
                     $query->where('is_active', $filters['is_active']);
@@ -180,10 +192,6 @@ class ProductService
             })
             ->orderBy('created_at', 'desc')
             ->get();
-
-        Cache::put($this->cacheKey . $userId, $myProducts);
-
-        return $myProducts;
     }
 
     /**
