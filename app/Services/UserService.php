@@ -75,7 +75,7 @@ class UserService
         $user = User::with('image')->where('username', $username)->firstOrFail();
 
         return [
-            'avatar' => $user->image->name ? public_path($user->image->name) : null,
+            'avatar' => $user->image->name ? url('api/v1/images/'. $user->image->name) : null,
             'name' => $user->name,
             'username' => $user->username,
         ];
